@@ -1,0 +1,48 @@
+;FFMETADATA1
+title=Penpotではじめる画面修正
+comment=Actual Penpot interaction recording. Japanese captions burned into the video. No audio.
+[CHAPTER]
+TIMEBASE=1/1000
+START=1
+END=6511
+title=はじめての PENPOT
+[CHAPTER]
+TIMEBASE=1/1000
+START=6511
+END=19591
+title=01 / 06 画面の見方
+[CHAPTER]
+TIMEBASE=1/1000
+START=19591
+END=45495
+title=02 / 06 見出しを変更
+[CHAPTER]
+TIMEBASE=1/1000
+START=45495
+END=70110
+title=03 / 06 ボタンの色を変更
+[CHAPTER]
+TIMEBASE=1/1000
+START=70110
+END=80782
+title=04 / 06 元に戻す・やり直す
+[CHAPTER]
+TIMEBASE=1/1000
+START=80782
+END=106216
+title=05 / 06 保存と確認
+[CHAPTER]
+TIMEBASE=1/1000
+START=106216
+END=114232
+title=06 / 06 実際のアプリへ反映
+[CHAPTER]
+TIMEBASE=1/1000
+START=114232
+END=124235
+title=CODEXへの依頼例
+[CHAPTER]
+TIMEBASE=1/1000
+START=124235
+END=131237
+title=今回のおさらい

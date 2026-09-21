@@ -1,0 +1,10 @@
+import { chromium } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+const browser=await chromium.launch();
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+await page.goto('http://localhost:9001');
+await page.waitForTimeout(2000);
+console.log(await page.locator('body').innerText());
+await mkdir('artifacts',{recursive:true});
+await page.screenshot({path:'artifacts/penpot-login.png'});
+await browser.close();
