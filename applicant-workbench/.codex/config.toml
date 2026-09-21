@@ -1,0 +1,9 @@
+# Copy to this project's .codex/config.toml. Open this folder as a trusted Codex project.
+[mcp_servers.penpot]
+url = "http://localhost:4401/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.playwright]
+command = "npx.cmd"
+args = ["--yes", "@playwright/mcp@0.0.82", "--browser", "chrome", "--isolated"]

@@ -1,0 +1,12 @@
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { createStore } from './store.mjs';
+import { createApp } from './app.mjs';
+const directory = process.env.DATA_DIR || 'data';
+mkdirSync(directory,{recursive:true});
+const keyPath=join(directory,'.session-key');
+if (!existsSync(keyPath)) writeFileSync(keyPath,randomBytes(48).toString('hex'),{mode:0o600});
+const store=createStore(join(directory,'applicants.sqlite'));
+const server=createApp(store,readFileSync(keyPath,'utf8')).listen(Number(process.env.PORT || 3200),process.env.HOST || '127.0.0.1',()=>console.log('Applicant workbench ready on port '+(process.env.PORT || 3200)));
+for (const signal of ['SIGINT','SIGTERM']) process.on(signal,()=>server.close(()=>{store.db.close();process.exit(0);}));
