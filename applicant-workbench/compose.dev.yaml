@@ -1,0 +1,28 @@
+# UI and API share one development container. Penpot is in compose.yaml.
+name: applicant-workbench-ui
+services:
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    init: true
+    ports: ["127.0.0.1:3201:3201"]
+    environment:
+      API_PROXY_TARGET: http://127.0.0.1:3200
+      VITE_USE_POLLING: "true"
+    volumes:
+      - ./src:/app/src:ro
+      - ./design:/app/design:ro
+      - ./index.html:/app/index.html:ro
+      - ./vite.config.js:/app/vite.config.js:ro
+      - ./server:/app/server:ro
+      - app-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "Promise.all(['/', '/api/health'].map(p=>fetch('http://127.0.0.1:3201'+p))).then(rs=>process.exit(rs.every(r=>r.ok)?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  app-data:
+    name: applicant-workbench_app-data
+    external: true

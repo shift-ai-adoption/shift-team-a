@@ -26,7 +26,7 @@
 
 ## 受け入れ条件
 
-- `docker compose up -d`後、申請者管理サンプルを`http://localhost:3200/`、Penpotを`http://localhost:9001/`で開ける。
+- `docker compose up -d` と `docker compose -f compose.dev.yaml up -d` 後、申請者管理サンプルを`http://localhost:3201/`、Penpotを`http://localhost:9001/`で開ける。
 - `npm test`が成功する。
 - `npm run test:e2e`で個人CRUD、法人CRUD、検索・空状態・利用者切り替え・スマートフォン表示が成功する。
 - Penpot MCP Pluginが`Connected`になり、対象ページのレイヤー構造を取得できる。
@@ -48,6 +48,8 @@
 
 ```powershell
 docker compose up -d --build
+docker volume create applicant-workbench_app-data
+docker compose -f compose.dev.yaml up -d --build
 npm test
 npm run test:e2e
 npm run capture

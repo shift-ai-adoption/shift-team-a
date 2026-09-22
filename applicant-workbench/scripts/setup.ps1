@@ -8,4 +8,8 @@ npm.cmd ci
 if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
 docker compose up -d --build
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose failed' }
-Write-Host 'Applicant: http://localhost:3200 | Penpot: http://localhost:9001'
+docker volume create applicant-workbench_app-data
+if ($LASTEXITCODE -ne 0) { throw 'Application data volume failed' }
+docker compose -f compose.dev.yaml up -d --build
+if ($LASTEXITCODE -ne 0) { throw 'Development container failed' }
+Write-Host 'Applicant: http://localhost:3201 | Penpot: http://localhost:9001'

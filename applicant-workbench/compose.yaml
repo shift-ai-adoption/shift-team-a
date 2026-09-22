@@ -9,16 +9,6 @@ services:
       dockerfile: Dockerfile.mcp
     ports: ["127.0.0.1:4400:4400", "127.0.0.1:4401:4401", "127.0.0.1:4402:4402"]
     restart: unless-stopped
-  app:
-    build: .
-    ports: ["127.0.0.1:3200:3200"]
-    volumes: ["app-data:/app/data"]
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3200/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
   penpot-frontend:
     image: penpotapp/frontend:2.15.4
     ports: ["127.0.0.1:9001:8080"]
@@ -94,6 +84,5 @@ services:
     command:
       - 'until mc alias set local http://minio:9000 penpot-local "$$MINIO_PASSWORD"; do sleep 2; done; mc mb --ignore-existing local/penpot'
 volumes:
-  app-data:
   penpot-db:
   penpot-assets:

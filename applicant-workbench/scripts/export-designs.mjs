@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 // Export visible geometry and text as editable SVG, never a raster image wrapper.
 const browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
-const base=process.env.APP_URL||'http://127.0.0.1:3200';
+const base=process.env.APP_URL||'http://127.0.0.1:3201';
 await mkdir('design/screens',{recursive:true});
 async function save(name){
  const svg=await page.evaluate(()=>{
