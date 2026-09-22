@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 const suffix=Date.now().toString();
 for(const kind of ['individual','corporation'])test(kind+' create, persist, edit and delete',async({page})=>{
  await page.goto('/');
- await expect(page.getByRole('heading',{name:'申請者管理',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'申請者管理画面',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'申請者を新規登録'}).click();
  if(kind==='corporation')await page.getByRole('radio',{name:'法人',exact:false}).check();
  const name=(kind==='individual'?'試験 太郎 ':'株式会社 試験 ')+suffix;
@@ -44,6 +44,10 @@ for(const kind of ['individual','corporation'])test(kind+' create, persist, edit
 });
 test('filter, empty state, isolation and mobile layout',async({page})=>{
  await page.goto('/');
+ await expect(page.getByRole('button',{name:'山田 太郎',exact:true})).toBeVisible();
+ await page.getByRole('link',{name:'本文へ移動'}).focus();
+ await page.keyboard.press('Enter');
+ await expect(page.locator('#main')).toBeFocused();
  await page.getByLabel('申請者区分で絞り込み').selectOption('corporation');
  await expect(page.locator('tbody .badge.individual')).toHaveCount(0);
  await page.getByLabel('申請者を検索').fill('存在しない申請者');

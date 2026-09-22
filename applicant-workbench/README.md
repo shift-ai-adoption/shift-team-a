@@ -1,6 +1,8 @@
-# Codex + Penpot 申請者管理ワークベンチ
+# Orca + Codex + Penpot 申請者管理ワークベンチ
 
 公的機関の事務処理システムを想定した、個人・法人の申請者CRUDサンプルと画面修正用のローカル開発環境です。実在する行政サービスではありません。
+
+環境の説明やプレゼン資料の作成には、[要件に合わせて選べるAI画面修正と開発環境](docs/development-environment-overview.md)を参照してください。AIへの一括指示、Penpotでのpx単位の調整、Orcaの注釈・スクリーンショットによる指示の使い分けと、構成・起動・検証方法をまとめています。
 
 [目標と受け入れ条件](docs/goal.md)を、初期依頼から逆算して定義しています。サンプル構築、動画作成、MCP直接編集、README整備までの記録は、[プロジェクト構築経緯](docs/project-history.md)にまとめています。
 
@@ -12,13 +14,42 @@
 
 | 用途 | URL |
 |---|---|
-| 申請者管理サンプル | http://localhost:3200 |
+| 申請者管理サンプル（開発用コンテナ） | http://localhost:3201 |
 | Penpot 2.15.4 | http://localhost:9001 |
 | Penpot公式MCP | http://localhost:4401/mcp |
 | MCPプラグインの登録URL | http://localhost:4400/manifest.json |
-| Viteによる画面修正プレビュー（`npm run dev`） | http://localhost:3201 |
 
 全ポートは127.0.0.1限定。PostgreSQL、Valkey、MinIOはホストへ公開しません。
+
+## コンテナで画面を修正し、保存直後に反映する
+
+画面（Vite）とAPI（Express）は一つの開発用コンテナで動きます。**AIが編集する作業フォルダーの `applicant-workbench`** から実行します。申請者管理だけならPenpotの起動や `.env` は不要です。
+
+```powershell
+docker volume create applicant-workbench_app-data
+docker compose -f compose.dev.yaml up -d --build
+```
+
+ボリューム作成は初回用です。同名の既存ボリュームがある場合は、そのデータを保持して再利用します。Composeでは外部ボリュームとして参照します。
+
+**http://localhost:3201 を開いてください。** `src/`、`design/`、`index.html`、`vite.config.js` はホストのファイルをコンテナが参照し、React/CSSの保存をViteが検知してブラウザへ反映します。Windows向けにポーリング監視を有効にしています。ホスト側の `npm run dev` とは同じポートを使うため、どちらか一方だけを起動します。
+
+Composeプロジェクトは `applicant-workbench-ui` です。Viteが同じコンテナ内のAPIへ接続します。API用の3200番はコンテナ内部のみで、ホストへ公開しません。申請者データとセッション署名鍵は既存の `applicant-workbench_app-data` ボリュームを引き継ぎます。旧表示用の `app` コンテナは廃止しました。
+
+AIには、例えば「申請者登録画面の見出しを変更し、3201番の画面で確認してください」と依頼できます。**マウント元は起動コマンドを実行したチェックアウト**です。別のOrcaワークスペースへ切り替える場合は、新しい作業フォルダーから同じコマンドを実行してコンテナを再作成してください。
+
+画面ソースの編集には再ビルド不要です。`server/` も直接マウントしており、API変更後は `docker compose -f compose.dev.yaml restart ui` で反映します。依存関係（`package.json` / `package-lock.json`）、`Dockerfile.dev`、`scripts/dev-container.mjs` を変えた場合は、上記コマンドで再ビルドします。
+
+開発画面を既存のテスト・キャプチャで検証する場合（ホスト側のnpm依存関係とPlaywright Chromiumが必要）:
+
+```powershell
+npm.cmd run test:e2e
+npm.cmd run capture
+```
+
+テスト・キャプチャ・SVG書き出しの既定の接続先は3201番です。停止は `docker compose -f compose.dev.yaml stop`、再開は `docker compose -f compose.dev.yaml up -d`。Penpotの `docker compose stop` と開発コンテナの停止は別です。
+
+参考: [Dockerのバインドマウント](https://docs.docker.com/engine/storage/bind-mounts/)、[Viteのファイル監視](https://vite.dev/config/server-options#server-watch)。
 
 ## 起動・停止
 
@@ -30,15 +61,19 @@ pwsh -File scripts/setup.ps1
 npx.cmd playwright install chromium
 ```
 
-すでに構築済みの場合:
+すでに構築済みの場合（`compose.yaml` はPenpot一式、`compose.dev.yaml` は申請者管理）:
 
 ```powershell
 docker compose up -d
-docker compose ps
+docker compose -f compose.dev.yaml up -d
+docker compose -f compose.dev.yaml ps
+docker compose -f compose.dev.yaml stop
 docker compose stop
 ```
 
 `stop` はデータを保持します。`docker compose down -v` はデータを削除するため通常は使わないでください。秘密値は初回だけランダム生成される `.env` に保存します。
+
+別の作業フォルダーから既存のPenpotを操作する場合は、例えば `docker compose --env-file "C:/path/to/existing/applicant-workbench/.env" up -d` のように既存設定の実際のパスを指定します。開発用の `compose.dev.yaml` には不要です。
 
 ## サンプルでできること
 
@@ -52,11 +87,13 @@ docker compose stop
 
 ## Codexで画面を修正する
 
+Orcaを使う場合は、[Orcaでの画面修正フロー](docs/orca-ui-workflow.md)を参照してください。作業フォルダーの確認、開発画面の起動、Codexへの修正依頼、Orca内蔵ブラウザでの確認、Penpotへの反映、取り消しまでを説明しています。
+
 1. この `applicant-workbench` フォルダーをCodexのプロジェクトとして開きます。
 2. `.codex/config.toml` のMCP設定を読み込むため、必要に応じてプロジェクトを再度開きます。設定見本は `docs/codex-config.toml`。
-3. `docker compose up -d` と `npm run dev` を実行。Viteの3201番は変更が即時反映され、APIは3200番のコンテナへ接続します。
+3. `docker compose -f compose.dev.yaml up -d --build` を実行。3201番で画面・APIの両方を利用できます。
 4. 例:「法人登録画面に部署名を任意項目として追加。Penpotと実装を更新し、入力→確認→詳細の表示と個人登録への影響を検証してください」。
-5. `docker compose up -d --build app` → `npm test` → `npm run test:e2e` → `npm run capture`。
+5. `npm test` → `npm run test:e2e` → `npm run capture`。APIを変更した場合は、先に `docker compose -f compose.dev.yaml restart ui` を実行します。
 
 OpenAI APIをアプリから直接呼びません。Codexの通常のログインを使います。プロジェクトにAPIキーを置く必要はありません。
 
@@ -130,7 +167,7 @@ python scripts/design-loop.py design/reference.png artifacts/actual.png --tolera
 | 要素 | 保存先 |
 |---|---|
 | React UI / Express API | `src/` / `server/` |
-| 申請者SQLite / セッション署名鍵 | Docker `app-data` ボリューム |
+| 申請者SQLite / セッション署名鍵 | Docker `applicant-workbench_app-data` ボリューム |
 | Penpot構造・ユーザー | PostgreSQL `penpot-db` ボリューム |
 | Penpot画像・アセット | MinIO `penpot-assets` ボリューム |
 | 色トークン / 編集可能SVG | `design/tokens.css` / `design/screens/` |
