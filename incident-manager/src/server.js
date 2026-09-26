@@ -15,7 +15,7 @@ async function body(req) {
   catch {throw new InputError('JSONが不正です');}
 }
 function validVersion(value) {if(!Number.isInteger(value)||value<1) throw new InputError('更新版数が不正です');return value;}
-http.createServer(async(req,res)=>{
+const server = http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Cache-Control','no-store');
   res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
@@ -83,4 +83,8 @@ http.createServer(async(req,res)=>{
     console.error('Request failed',{name:error.name,code:error.code});
     return json(res,500,{error:'処理に失敗しました。接続状態を確認してください'});
   }
-}).listen(Number(process.env.PORT)||3000,'0.0.0.0',()=>console.log('Incident manager listening'));
+});
+repo.initializeDemoData().then(count=>{
+  if (count) console.log(`Added ${count} fictional dashboard incidents`);
+  server.listen(Number(process.env.PORT)||3000,'0.0.0.0',()=>console.log('Incident manager listening'));
+}).catch(error=>{console.error('Could not initialize dashboard sample data',error);process.exit(1);});
