@@ -1,11 +1,38 @@
 import pg from 'pg';
 import { fields, InputError, responseMinutes, normalize } from './domain.js';
+import { demoIncidents } from './demo-data.js';
 // DATE is a calendar date, not an instant. Keep it independent of container timezone.
 pg.types.setTypeParser(1082, value=>value);
 const pool = new pg.Pool({connectionString:process.env.DATABASE_URL});
 const columns = fields.map(([key])=>key);
 export class Conflict extends Error {}
 export async function health() { await pool.query('SELECT 1'); }
+export async function initializeDemoData() {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('incident-manager-demo-seed-v1'))");
+    await client.query('CREATE TABLE IF NOT EXISTS demo_seed_runs (seed_name text PRIMARY KEY, inserted_at timestamptz NOT NULL DEFAULT now())');
+    const { rows } = await client.query("SELECT 1 FROM demo_seed_runs WHERE seed_name='dashboard-1000-v1'");
+    if (rows.length) { await client.query('COMMIT'); return 0; }
+    const data = demoIncidents();
+    const keys = ['node','output_at','message','file_name','pattern','log_line_count','grep_result','occurred_at','occurrence_type','business_type','cause','response_action','assignee','status','completed_on','operation_minutes','received_at','first_response_at','novelty','defect'];
+    for (let start = 0; start < data.length; start += 100) {
+      const batch = data.slice(start, start + 100);
+      const params = [];
+      const tuples = batch.map((row, index) => {
+        const offset = index * (keys.length + 2);
+        params.push('incident', ...keys.map(key => row[key]), row.request_key);
+        return `(${Array.from({length: keys.length + 2}, (_, i) => `$${offset + i + 1}`).join(',')})`;
+      });
+      await client.query(`INSERT INTO incidents(record_type,${keys.join(',')},request_key) VALUES ${tuples.join(',')}`, params);
+    }
+    await client.query("INSERT INTO demo_seed_runs(seed_name) VALUES ('dashboard-1000-v1')");
+    await client.query('COMMIT');
+    return data.length;
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { client.release(); }
+}
 export async function list({q='',status='',record_type=''}={}) {
   const result = await pool.query(`SELECT * FROM incidents WHERE deleted_at IS NULL
     AND ($1 = '' OR concat_ws(' ',id,node,message,business_type,cause,assignee) ILIKE '%' || $1 || '%')

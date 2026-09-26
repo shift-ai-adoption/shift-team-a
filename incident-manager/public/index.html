@@ -6,7 +6,18 @@
 <main>
   <div class="notice"><strong>LLM未接続</strong> 項目抽出と報告文テンプレートが利用できます。外部へのデータ送信は行いません。</div>
   <div id="feedback" role="status" aria-live="polite"></div>
-  <section class="panel"><div class="section-heading"><h2>対応状況</h2><span>下の検索条件に連動</span></div><div id="metrics" class="metrics"></div><div class="chart-heading"><label for="group">集計軸</label><select id="group"><option value="status">ステータス</option><option value="business_type">業務種別</option><option value="assignee">担当者</option><option value="pattern">ログ種別</option><option value="novelty">新規／既出</option><option value="node">ノード</option><option value="month">発生月</option></select></div><div id="chart" class="chart"></div></section>
+  <section class="panel dashboard">
+    <div class="section-heading"><div><h2>対応状況ダッシュボード</h2><p class="hint">検索・ステータス・区分の絞り込みに連動</p></div><span id="dashboard-scope" class="badge light"></span></div>
+    <div id="metrics" class="metrics"></div>
+    <div class="dashboard-grid">
+      <article class="chart-card"><div class="chart-title"><h3>ステータス内訳</h3><span>対応の進み具合</span></div><div id="status-chart" class="bar-list"></div></article>
+      <article class="chart-card"><div class="chart-title"><h3>業務種別</h3><span>件数と未完了件数</span></div><div id="business-chart" class="bar-list"></div></article>
+      <article class="chart-card"><div class="chart-title"><h3>月別の発生件数</h3><span>直近12か月</span></div><div id="trend-chart" class="bar-list"></div></article>
+      <article class="chart-card"><div class="chart-title"><h3>発生種別</h3><span>検知・連絡経路</span></div><div id="occurrence-chart" class="bar-list"></div></article>
+      <article class="chart-card"><div class="chart-title"><h3>担当者別の未完了</h3><span>未着手・対応中・保留</span></div><div id="assignee-chart" class="bar-list"></div></article>
+      <article class="chart-card"><div class="chart-title"><h3>初回回答時間</h3><span>受付から初回回答まで</span></div><div id="response-chart" class="bar-list"></div></article>
+    </div>
+  </section>
   <section class="panel"><div class="section-heading"><h2>記録一覧</h2><button id="new" type="button">＋ 新規作成</button></div>
     <form id="search" class="filters"><input id="q" aria-label="検索語" placeholder="項番・ノード・メッセージ・担当者で検索"><select id="filter-status" aria-label="ステータスで絞込"><option value="">すべての状態</option><option>未着手</option><option>対応中</option><option>保留</option><option>完了</option></select><select id="filter-type" aria-label="区分で絞込"><option value="">すべての区分</option><option value="incident">インシデント</option><option value="faq">FAQ</option></select><button>検索</button><a id="export" class="button secondary" href="/api/export.xlsx">Excel出力</a></form>
     <div class="table-scroll"><table><thead><tr><th>項番</th><th>発生日時（日本時間）</th><th>ノード / 事象</th><th>担当者</th><th>状態</th><th>判定</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div>
